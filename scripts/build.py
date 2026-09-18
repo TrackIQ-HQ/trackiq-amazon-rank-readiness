@@ -105,6 +105,7 @@ def main() -> int:
         entries.append({
             "name": name,
             "title": meta.get("title", name),
+            "category": meta.get("category", ""),
             "version": version,
             "updated": meta.get("updated", ""),
             "summary": meta.get("summary", ""),
