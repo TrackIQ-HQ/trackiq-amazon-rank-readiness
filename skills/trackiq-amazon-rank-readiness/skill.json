@@ -1,0 +1,23 @@
+{
+  "name": "trackiq-amazon-rank-readiness",
+  "title": "TrackIQ: Amazon Rank Readiness",
+  "version": "1.0.0",
+  "updated": "2026-09-18",
+  "summary": "Decides which search terms deserve advertising spend or seeding on a single ASIN, by testing whether a bought organic rank would survive the money stopping — your conversion rate against the market's on the same query. Returns FUND, SEED, TEST or NO-GO per keyword plus a designed HTML report.",
+  "changelog": "First public release.",
+  "requires": {
+    "mcp": ["trackiq"],
+    "tools": ["set_context", "list_marketplaces", "get_search_query_performance", "get_keyword_rank", "get_search_terms"],
+    "filesystem": true,
+    "network": false,
+    "third_party_apis": []
+  },
+  "delivery": {
+    "methods": ["in-chat", "file", "slack", "n8n", "email"],
+    "default": "in-chat",
+    "note": "in-chat always works and is the fallback. file needs a filesystem, n8n needs network, slack and email need their tool connected. Outward sends confirm first."
+  },
+  "fallback": "The bundled scripts only do arithmetic and layout. Without Python, assets/method.md carries every threshold and assets/pulling-data.md the exact pulls, so the same verdicts can be produced by hand as a table.",
+  "homepage": "https://trackiq.com/skills/trackiq-amazon-rank-readiness",
+  "license": "MIT"
+}

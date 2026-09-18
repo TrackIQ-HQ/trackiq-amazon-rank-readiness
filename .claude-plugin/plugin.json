@@ -1,0 +1,10 @@
+{
+  "name": "trackiq-amazon-rank-readiness",
+  "version": "1.0.0",
+  "description": "TrackIQ: Amazon Rank Readiness — an Agent Skill that decides which search terms are worth advertising or seeding spend on an ASIN, by testing whether the rank you buy would hold once the money stops.",
+  "author": { "name": "TrackIQ", "url": "https://trackiq.com" },
+  "homepage": "https://trackiq.com/skills/trackiq-amazon-rank-readiness",
+  "repository": "https://github.com/TrackIQ-HQ/trackiq-amazon-rank-readiness",
+  "license": "MIT",
+  "keywords": ["amazon", "amazon-seller", "amazon-ads", "ppc", "rank-and-bank", "product-seeding", "organic-rank", "keyword-research", "conversion-rate", "claude-skill", "agent-skills", "trackiq"]
+}
