@@ -67,7 +67,16 @@ def parse_frontmatter(text: str, skill: str) -> tuple[dict, str]:
 
 
 def check_skill(path: Path) -> None:
+    # For a repo-root skill the folder name is whatever the clone directory
+    # happens to be — the authoritative name lives in skill.json.
     skill = path.name
+    if path == REPO:
+        meta = path / "skill.json"
+        if meta.exists():
+            try:
+                skill = json.loads(meta.read_text(encoding="utf-8")).get("name", path.name)
+            except json.JSONDecodeError:
+                pass
     skill_md = path / "SKILL.md"
 
     if not skill_md.exists():
@@ -175,8 +184,13 @@ def main() -> int:
     skills = sorted(
         p for p in sorted(set(REPO.glob("plugins/*/skills/*")) | set(REPO.glob("skills/*"))) if p.is_dir() and not p.name.startswith("_")
     )
+    # Single-skill repos put SKILL.md at the repo root so GitHub's
+    # "Download ZIP" produces a claude.ai-uploadable file. The repo IS the
+    # skill, named after itself.
+    if (REPO / "SKILL.md").exists():
+        skills = [REPO] + skills
     if not skills:
-        print("No skills found under skills/ or plugins/*/skills/")
+        print("No skills found at repo root, skills/ or plugins/*/skills/")
         return 1
 
     for path in skills:

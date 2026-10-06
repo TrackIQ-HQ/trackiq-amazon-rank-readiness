@@ -34,6 +34,11 @@ SIZE_WARN_BYTES = 25 * 1024 * 1024
 # Files that are ours, not the user's — excluded from what gets shipped.
 EXCLUDE_NAMES = {".DS_Store", "skill.json", "Thumbs.db"}
 EXCLUDE_DIRS = {"__pycache__", ".git"}
+# When the skill IS the repo root, also strip the plugin manifest, dev
+# scripts, CI config and git metadata so the shipped zip is claude.ai-upload
+# clean (same files that .gitattributes export-ignores from Download ZIP).
+ROOT_EXCLUDE_NAMES = {".gitignore", ".gitattributes", "README.md", "LICENSE"}
+ROOT_EXCLUDE_DIRS = {".claude-plugin", ".github", "scripts", "dist"}
 
 
 def sha256(path: Path) -> str:
@@ -45,20 +50,22 @@ def sha256(path: Path) -> str:
 
 
 def files_in(skill_dir: Path) -> list[Path]:
+    at_root = skill_dir == REPO
+    exclude_names = EXCLUDE_NAMES | ROOT_EXCLUDE_NAMES if at_root else EXCLUDE_NAMES
+    exclude_dirs = EXCLUDE_DIRS | ROOT_EXCLUDE_DIRS if at_root else EXCLUDE_DIRS
     out = []
     for p in sorted(skill_dir.rglob("*")):
         if not p.is_file():
             continue
-        if p.name in EXCLUDE_NAMES:
+        if p.name in exclude_names:
             continue
-        if any(part in EXCLUDE_DIRS for part in p.relative_to(skill_dir).parts):
+        if any(part in exclude_dirs for part in p.relative_to(skill_dir).parts):
             continue
         out.append(p)
     return out
 
 
-def package(skill_dir: Path, version: str) -> Path:
-    name = skill_dir.name
+def package(skill_dir: Path, name: str, version: str) -> Path:
     zip_path = DIST / f"{name}-{version}.zip"
     # Deterministic: a rebuild of an unchanged skill produces the same hash,
     # so the registry only churns when content actually changed.
@@ -89,18 +96,27 @@ def main() -> int:
         shutil.rmtree(DIST)
     DIST.mkdir(parents=True)
 
+    skill_dirs = sorted(p for p in sorted(set(REPO.glob("plugins/*/skills/*")) | set(REPO.glob("skills/*")))
+                        if p.is_dir() and not p.name.startswith("_"))
+    # Repo-root skill (SKILL.md at the top) — the repo IS the plugin and
+    # the skill, named after itself.
+    if (REPO / "SKILL.md").exists():
+        skill_dirs = [REPO] + skill_dirs
+
     entries = []
-    for skill_dir in sorted(p for p in sorted(set(REPO.glob("plugins/*/skills/*")) | set(REPO.glob("skills/*")))
-                            if p.is_dir() and not p.name.startswith("_")):
+    for skill_dir in skill_dirs:
         meta_path = skill_dir / "skill.json"
         if not meta_path.exists():
             print(f"  ERROR  {skill_dir.name}: no skill.json — run validate.py")
             return 1
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        name, version = skill_dir.name, meta["version"]
+        # Repo-root skill: the directory name is whatever the checkout
+        # happens to be called — trust skill.json for the real name.
+        name = meta["name"] if skill_dir == REPO else skill_dir.name
+        version = meta["version"]
 
-        zip_path = package(skill_dir, version)
-        plugin = skill_dir.parent.parent.name
+        zip_path = package(skill_dir, name, version)
+        plugin = name if skill_dir == REPO else skill_dir.parent.parent.name
 
         entries.append({
             "name": name,
