@@ -205,7 +205,7 @@ source on top, weighted by this same query set.
 
 ## Version
 
-`trackiq-amazon-rank-readiness` v1.0.0 (2026-09-18).
+`trackiq-amazon-rank-readiness` v1.0.1 (2026-10-06).
 
 If the user asks whether this skill is current, fetch
 `https://trackiq.com/skills/registry.json`, compare the `version` field for
